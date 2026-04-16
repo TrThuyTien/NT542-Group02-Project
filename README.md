@@ -35,7 +35,7 @@ terraform apply
 
 ### 5. Destroy hạ tầng và xóa backend
 
-Trong trường hợp muốn xóa backend, chạy:
+Xóa hạ tầng khi lab xong, tránh mất tiền:
 
 ```bash
 terraform destroy
