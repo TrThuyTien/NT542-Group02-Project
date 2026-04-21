@@ -10,10 +10,6 @@ variable "private_subnet_ids" {
   type = list(string)
 }
 
-variable "lambda_execution_role_arn" {
-  type = string
-}
-
 variable "secret_arn" {
   type = string
 }

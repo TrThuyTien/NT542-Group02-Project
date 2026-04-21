@@ -34,14 +34,6 @@ variable "memory" {
   type = string
 }
 
-variable "task_execution_role_arn" {
-  type = string
-}
-
-variable "task_role_arn" {
-  type = string
-}
-
 variable "secret_arn" {
   type = string
 }
