@@ -1,3 +1,7 @@
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = 14
@@ -90,8 +94,9 @@ resource "aws_ecs_task_definition" "this" {
   network_mode             = "awsvpc"
   cpu                      = var.cpu
   memory                   = var.memory
-  execution_role_arn       = var.task_execution_role_arn
-  task_role_arn            = var.task_role_arn
+
+  execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
+  task_role_arn      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
 
   container_definitions = jsonencode([
     {
@@ -133,8 +138,6 @@ resource "aws_ecs_task_definition" "this" {
   ])
 }
 
-data "aws_region" "current" {}
-
 resource "aws_ecs_service" "this" {
   name            = "${var.project_name}-service"
   cluster         = aws_ecs_cluster.this.id
@@ -148,12 +151,13 @@ resource "aws_ecs_service" "this" {
     assign_public_ip = false
   }
 
-
   load_balancer {
     target_group_arn = aws_lb_target_group.this.arn
     container_name   = "${var.project_name}-app"
     container_port   = var.container_port
   }
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [
+    aws_lb_listener.http
+  ]
 }

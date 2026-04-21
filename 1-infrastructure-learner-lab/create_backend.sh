@@ -8,7 +8,7 @@
 
 set -e
 
-BUCKET_NAME="nt542-group02-architecture"
+BUCKET_NAME="nt542-architecture"
 DYNAMODB_TABLE="terraform-locks"
 REGION="us-east-1"
 

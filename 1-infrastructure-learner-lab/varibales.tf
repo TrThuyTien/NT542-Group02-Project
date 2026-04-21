@@ -7,6 +7,7 @@ variable "region" {
   type    = string
   default = "us-east-1"
 }
+
 variable "azs" {
   type = list(string)
   default = [
@@ -59,5 +60,5 @@ variable "ecs_memory" {
 variable "secret_string_json" {
   type      = string
   sensitive = true
-  default   = "123"
+  default = "123456"
 }

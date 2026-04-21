@@ -3,7 +3,8 @@
 
 ## A. Deploy Hạ tầng
 - Sử dụng môi trường Learner Lab AWS
-- Chạy trong thư mục **1-infrastructure**
+- Chạy trong thư mục **1-infrastructure-learner-lab**
+- Thay đổi secret_name trong file main.tf (file chính) ở mỗi lần chạy
 ### 1. Cấp quyền thực thi cho script
 Chạy lệnh sau để cấp quyền cho các file shell script:
 
@@ -16,7 +17,7 @@ chmod +x delete_backend.sh
 Chạy script tạo backend:
 
 ```bash
-sh create_backend.sh
+bash create_backend.sh
 ```
 
 ### 3. Khởi tạo Terraform
@@ -39,5 +40,11 @@ Xóa hạ tầng khi lab xong, tránh mất tiền:
 
 ```bash
 terraform destroy
-sh delete_backend.sh
+bash delete_backend.sh
+```
+## B. Chạy script kiểm tra khuyến nghị
+### 1. Kiểm tra lambda
+- Chạy trong thư mục 2-cis-aws-scan/scripts/lambda/check_lambda_core.sh
+```bash
+bash 2-cis-aws-scan/scripts/lambda/check_lambda_core.sh
 ```
