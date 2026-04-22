@@ -1,0 +1,8 @@
+Region,Function_Name,Control,Status,Finding,Severity,Details
+"us-east-1","nt542-group02","12.5","PASS","Lambda function has unique IAM role","INFO","Role: nt542-group02-lambda-execution"
+"us-east-1","nt542-group02","12.2","FAIL","CloudWatch Lambda Insights not enabled","MEDIUM","Enhanced monitoring disabled - cannot collect system-level metrics"
+"us-east-1","nt542-group02","12.4","MANUAL","Review required for least privilege","INFO","Role: nt542-group02-lambda-execution - Manual review needed for granular permissions"
+"us-east-1","nt542-group02","12.6","PASS","Function not publicly accessible","INFO","Resource-based policy restricts access"
+"us-east-1","nt542-group02","12.7","PASS","Execution role is active","INFO","Role: nt542-group02-lambda-execution"
+"us-east-1","nt542-group02","12.8","FAIL","Code signing not enabled","HIGH","Function can deploy unverified code - enable code signing for security"
+"us-east-1","nt542-group02","12.9","PASS","No administrative privileges detected","INFO","Role: nt542-group02-lambda-execution"

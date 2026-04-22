@@ -48,3 +48,9 @@ bash delete_backend.sh
 ```bash
 bash 2-cis-aws-scan/scripts/lambda/check_lambda_core.sh
 ```
+
+### 2. Kiểm tra Service & Cluster
+- Chạy trong thư mục 2-cis-aws-scan/scripts/ecs/check_ecs_service.sh
+```bash
+bash 2-cis-aws-scan/scripts/ecs/check_ecs_service.sh
+```
