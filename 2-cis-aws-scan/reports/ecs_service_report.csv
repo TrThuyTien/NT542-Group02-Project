@@ -1,0 +1,7 @@
+Region,Resource_Name,Control,Status,Finding,Severity,Details
+"us-east-1","nt542-group02-service","3.2","PASS","assignPublicIp is DISABLED for ECS Service","LOW","Level 1 - Service is properly isolated in private subnet"
+"us-east-1","nt542-group02-service","3.8","PASS","Fargate is using a supported/latest version","LOW","Family: Linux, Version: LATEST"
+"us-east-1","nt542-group02-cluster","3.9","FAIL","Container Insights is DISABLED","MEDIUM","Lack of visibility into system-level metrics"
+"us-east-1","nt542-group02-service","3.10","WARN","Service has no custom tags","LOW","Rationale: Consistently tagging resources aids in management and security audit"
+"us-east-1","nt542-group02-cluster","3.11","WARN","Cluster has no custom tags","LOW","Rationale: Consistent tagging helps identify unauthorized or misconfigured resources"
+"us-east-1","nt542-group02-service","3.14","MANUAL","No Task Sets found","LOW","Manual review required if custom deployment controllers are used"
