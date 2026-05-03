@@ -93,7 +93,7 @@ merge_all_reports() {
             line_count=$(tail -n +2 "$report" | wc -l | tr -d ' ')
             tail -n +2 "$report" >> "$REPORT_FULL"
             log_info "  ✅ Merged $(basename "$report") ($line_count findings)"
-            ((merged_count++))
+            merged_count=$((merged_count + 1))
         else
             log_warn "  ⚠️  Missing: $(basename "$report") — skipping"
         fi
