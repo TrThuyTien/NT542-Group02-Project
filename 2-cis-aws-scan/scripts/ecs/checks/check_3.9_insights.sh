@@ -10,6 +10,7 @@ check_container_insights() {
     local insights_status=$(aws ecs describe-clusters \
         --region "$region" \
         --cluster "$cluster" \
+        --include SETTINGS \
         --query 'clusters[0].settings[?name==`containerInsights`].value' \
         --output text 2>/dev/null || echo "disabled")
 
