@@ -19,6 +19,12 @@ init_csv() {
 }
 
 write_finding() {
+    local status="$4"
+    if [ "$status" = "FAIL" ]; then
+        echo "  [FAIL] $3 — $5"
+    else
+        echo "  [PASS] $3"
+    fi
     echo "\"$1\",\"$2\",\"$3\",\"$4\",\"$5\",\"$6\",\"$7\"" >> "$OUTPUT_FILE"
 }
 
