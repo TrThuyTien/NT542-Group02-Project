@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# check_12.12_env_encryption.sh
-# CIS 12.12: Environment variables phải được mã hóa (KMS CMK)
+# check_12.12_env_encryption.sh  (v2 — Sửa theo feedback CIS Benchmark)
+# CIS 12.12: Environment variables phải được mã hóa in-transit
 # NT542 Group02 — Person 4
 # =============================================================================
 
@@ -12,56 +12,83 @@ check_12_12_env_encryption() {
 
     log_info "Checking CIS 12.12: Environment variables encrypted in transit (KMS)..."
 
-    local config
-    config=$(get_lambda_config "$region" "$function_name")
+    # Dùng get-function (không phải get-function-configuration) để lấy được giá trị biến
+    local func_data
+    func_data=$(aws lambda get-function \
+        --region "$region" \
+        --function-name "$function_name" \
+        --query "Configuration.Environment" \
+        --output json 2>/dev/null || echo "{}")
 
-    # Kiểm tra có environment variables không
-    local has_env_vars
-    has_env_vars=$(echo "$config" | \
+    # Phân tích giá trị biến: plaintext hay ciphertext?
+    local analysis
+    analysis=$(echo "$func_data" | \
         python3 -c "
-import sys, json
-c = json.load(sys.stdin)
-env = c.get('Environment', {}).get('Variables', {})
-print('yes' if env else 'no')
-" 2>/dev/null || echo "no")
+import sys, json, re
 
-    if [ "$has_env_vars" = "no" ]; then
-        write_finding "$output_file" "$region" "$function_name" "12.12" "PASS" \
-            "No environment variables configured — encryption not required" "MEDIUM" \
-            "No environment variables to encrypt"
-        return
-    fi
+try:
+    data = json.load(sys.stdin)
+except:
+    print('NO_ENV')
+    sys.exit(0)
 
-    # Lấy KMS Key ARN
-    local kms_key
-    kms_key=$(echo "$config" | \
-        python3 -c "
-import sys, json
-c = json.load(sys.stdin)
-print(c.get('KMSKeyArn', 'NONE'))
-" 2>/dev/null || echo "NONE")
+env = data.get('Variables', {})
 
-    if [ "$kms_key" = "NONE" ] || [ -z "$kms_key" ] || [ "$kms_key" = "None" ]; then
-        write_finding "$output_file" "$region" "$function_name" "12.12" "FAIL" \
-            "Environment variables exist but are NOT encrypted with a Customer-Managed KMS Key" "HIGH" \
-            "Lambda has environment variables but KMSKeyArn is not set. Configure a CMK to encrypt environment variables at rest."
-    else
-        # Kiểm tra key có phải CMK (Customer-Managed) không
-        local key_manager
-        key_manager=$(aws kms describe-key \
-            --region "$region" \
-            --key-id "$kms_key" \
-            --query "KeyMetadata.KeyManager" \
-            --output text 2>/dev/null || echo "UNKNOWN")
+if not env:
+    print('NO_ENV')
+    sys.exit(0)
 
-        if [ "$key_manager" = "AWS" ]; then
-            write_finding "$output_file" "$region" "$function_name" "12.12" "WARN" \
-                "Environment variables encrypted with AWS-managed key (not CMK)" "MEDIUM" \
-                "KMS Key: $kms_key (AWS-managed). For CIS compliance, use a Customer-Managed Key (CMK) for better key control."
-        else
+# Regex nhận diện ciphertext (chuỗi Base64 dài, thường bắt đầu bằng AQICA hoặc AQECA)
+ciphertext_pattern = re.compile(r'^AQ[IE]CA[A-Za-z0-9+/=]{20,}$')
+
+plaintext_vars = []
+encrypted_vars = []
+
+for key, value in env.items():
+    value_stripped = value.strip()
+
+    # Kiểm tra giá trị có phải ciphertext (mã hóa bởi KMS helpers) không
+    if ciphertext_pattern.match(value_stripped):
+        encrypted_vars.append(key)
+    # Kiểm tra giá trị có phải ARN (tham chiếu, không phải secret thật)
+    elif value_stripped.startswith('arn:aws:'):
+        encrypted_vars.append(key)  # ARN reference — an toàn
+    else:
+        plaintext_vars.append(key)
+
+if plaintext_vars:
+    print('FAIL|' + ','.join(plaintext_vars) + '|' + ','.join(encrypted_vars))
+elif encrypted_vars:
+    print('PASS_ENCRYPTED|' + ','.join(encrypted_vars))
+else:
+    print('NO_ENV')
+" 2>/dev/null || echo "ERROR")
+
+    case "$analysis" in
+        NO_ENV)
             write_finding "$output_file" "$region" "$function_name" "12.12" "PASS" \
-                "Environment variables encrypted with Customer-Managed KMS Key" "HIGH" \
-                "KMS Key ARN: $kms_key (Manager: $key_manager)"
-        fi
-    fi
+                "No environment variables configured — encryption not required" "MEDIUM" \
+                "No environment variables to encrypt"
+            ;;
+        PASS_ENCRYPTED*)
+            local enc_keys="${analysis#PASS_ENCRYPTED|}"
+            write_finding "$output_file" "$region" "$function_name" "12.12" "PASS" \
+                "All environment variable values are encrypted or are safe references" "HIGH" \
+                "Encrypted/Safe variables: [$enc_keys]"
+            ;;
+        FAIL*)
+            # Tách phần plaintext và encrypted
+            local rest="${analysis#FAIL|}"
+            local plain_keys="${rest%%|*}"
+            local enc_keys="${rest#*|}"
+            write_finding "$output_file" "$region" "$function_name" "12.12" "FAIL" \
+                "Environment variables contain plaintext values — not encrypted in transit" "HIGH" \
+                "Plaintext variables: [$plain_keys]. Enable 'helpers for encryption in transit' in Lambda console and encrypt with KMS."
+            ;;
+        *)
+            write_finding "$output_file" "$region" "$function_name" "12.12" "WARN" \
+                "Could not analyze environment variable encryption status" "HIGH" \
+                "Manual review required — check Lambda console for encryption helpers"
+            ;;
+    esac
 }
